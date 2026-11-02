@@ -14,9 +14,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   return (
     <form action={formAction} className="space-y-4">
       {isSignup && (
-        <Input label="Your name" name="display_name" autoComplete="given-name" required maxLength={40} />
+        <Input label="Your name" name="display_name" defaultValue={state?.displayName} autoComplete="given-name" required maxLength={40} />
       )}
-      <Input label="Email" name="email" type="email" autoComplete="email" required />
+      <Input label="Email" name="email" type="email" defaultValue={state?.email} autoComplete="email" required />
       <Input
         label="Password"
         name="password"

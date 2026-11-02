@@ -81,9 +81,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
 ## Build progress
 - [x] Step 0: scaffold, app shell, bottom nav, PWA manifest + icons
-- [~] Step 1: Supabase clients + email/password auth + profiles (code done; not tested end-to-end against Supabase yet)
+- [x] Step 1: Supabase clients + email/password auth + profiles (migration 0001 applied)
 - [ ] Step 2: couples, pairing via invite code/link, RLS tests
 - [ ] Step 3: grocery list with realtime
 - [ ] Step 4: calendar (week/month, mine/theirs/ours)
 - [ ] Step 5: home dashboard
 - [ ] Step 6: PWA polish (service worker, offline page, install)
+
+## Notes for the cloud dev environment
+- Node's server-side `fetch` needs the proxy: start the app with
+  `NODE_USE_ENV_PROXY=1 npx next start` (or `npm run dev`). Not needed on a normal computer.
+- `NEXT_PUBLIC_*` env vars are baked in at build time: rebuild after changing `.env.local`.
+- Migrations are applied by the owner by pasting each file in
+  `supabase/migrations/` into Supabase → SQL Editor, in order.
