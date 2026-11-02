@@ -33,9 +33,11 @@ const KEYWORDS: Record<Exclude<CategoryKey, "other">, string[]> = {
 };
 
 export function guessCategory(name: string): CategoryKey {
-  const words = name.toLowerCase().split(/[^a-z]+/);
+  const words = name.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  // Also try each word without a plural ending: "bananas" → "banana", "tomatoes" → "tomato".
+  const forms = words.flatMap((w) => [w, w.replace(/e?s$/, ""), w.replace(/s$/, "")]);
   for (const [key, list] of Object.entries(KEYWORDS)) {
-    if (words.some((w) => list.includes(w))) return key as CategoryKey;
+    if (forms.some((w) => list.includes(w))) return key as CategoryKey;
   }
   return "other";
 }

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getMyCouple } from "@/features/couple/queries";
 import { GroceryList } from "@/features/groceries/GroceryList";
-import { GROCERY_COLUMNS, type GroceryItem } from "@/features/groceries/useGroceries";
+import { GROCERY_COLUMNS, type GroceryItem } from "@/features/groceries/types";
 
 // Our shopping list. The list is loaded here on the server (fast first paint),
 // then GroceryList keeps it live in the browser.

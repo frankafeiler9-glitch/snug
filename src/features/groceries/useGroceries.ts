@@ -2,24 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { GROCERY_COLUMNS, type GroceryItem } from "./types";
 
-export type GroceryItem = {
-  id: string;
-  name: string;
-  category: string;
-  is_checked: boolean;
-  checked_by: string | null;
-  created_by: string | null;
-  created_at: string;
-};
-
-export const GROCERY_COLUMNS = "id, name, category, is_checked, checked_by, created_by, created_at";
 
 /**
  * Keeps the shared grocery list in sync.
  *
  * - Your own changes show up instantly ("optimistic"), then get saved.
- *   If saving fails, the change is undone and `error` explains why.
+ *   If saving fails, the list reloads from the server and `error` explains why.
  * - Your partner's changes arrive through Supabase Realtime.
  * - When the app comes back to the foreground (phones pause connections in
  *   the background), we reload the list so nothing is missed.
@@ -34,22 +24,32 @@ export function useGroceries(coupleId: string, initialItems: GroceryItem[]) {
     if (data) setItems(data as GroceryItem[]);
   }, [supabase]);
 
+  // Replace an item if we have it already (e.g. our own optimistic copy), else add it.
+  const upsert = (row: GroceryItem) => setItems((list) => [...list.filter((i) => i.id !== row.id), row]);
+
   // ─── Live updates from your partner ──────────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel(`groceries:${coupleId}`)
+      // New and changed items (only ours, thanks to the filter + row-level security).
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "grocery_items", filter: `couple_id=eq.${coupleId}` },
+        { event: "INSERT", schema: "public", table: "grocery_items", filter: `couple_id=eq.${coupleId}` },
+        (change) => upsert(change.new as GroceryItem),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "grocery_items", filter: `couple_id=eq.${coupleId}` },
+        (change) => upsert(change.new as GroceryItem),
+      )
+      // Deleted items. Supabase can't filter deletes by couple, so this only
+      // carries the deleted item's id; ids that aren't on our list are ignored.
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "grocery_items" },
         (change) => {
-          if (change.eventType === "DELETE") {
-            const goneId = (change.old as { id: string }).id;
-            setItems((list) => list.filter((i) => i.id !== goneId));
-          } else {
-            const row = change.new as GroceryItem;
-            // Replace if we have it already (e.g. our own optimistic copy), else add.
-            setItems((list) => [...list.filter((i) => i.id !== row.id), row]);
-          }
+          const goneId = (change.old as { id?: string }).id;
+          if (goneId) setItems((list) => list.filter((i) => i.id !== goneId));
         },
       )
       .subscribe((status) => {

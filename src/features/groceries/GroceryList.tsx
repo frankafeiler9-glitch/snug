@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, categoryInfo, guessCategory, type CategoryKey } from "./categories";
-import { useGroceries, type GroceryItem } from "./useGroceries";
+import { useGroceries } from "./useGroceries";
+import type { GroceryItem } from "./types";
 
 type Props = {
   coupleId: string;
@@ -115,6 +116,14 @@ function AddItem({ onAdd }: { onAdd: (name: string, category: CategoryKey) => vo
   const [picked, setPicked] = useState<CategoryKey | null>(null);
   const category = picked ?? guessCategory(name);
 
+  // Keep the chosen category chip in view (the row scrolls sideways).
+  const chipsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    chipsRef.current
+      ?.querySelector('[data-active="true"]')
+      ?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [category]);
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
@@ -144,11 +153,12 @@ function AddItem({ onAdd }: { onAdd: (name: string, category: CategoryKey) => vo
         </button>
       </div>
       {name.trim() && (
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div ref={chipsRef} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {CATEGORIES.map((c) => (
             <button
               key={c.key}
               type="button"
+              data-active={c.key === category}
               onClick={() => setPicked(c.key)}
               className={`shrink-0 rounded-full px-3 py-1.5 text-sm transition ${
                 c.key === category ? "bg-accent text-accent-foreground" : "bg-surface text-muted shadow-sm"

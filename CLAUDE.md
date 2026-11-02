@@ -69,6 +69,15 @@ public/icons/          PWA icons (regenerate: scripts/make-icons.js)
   `bg-accent`, `text-me`, `text-partner`). Don't hard-code hex colors in components.
 - Mobile-first: design for ~375px width, respect safe-area insets.
 - Use the `@/` import alias (maps to `src/`).
+- Types/constants needed by both server and browser code go in a plain file
+  (e.g. `features/groceries/types.ts`), never in a `"use client"` file.
+- Realtime pattern (see `features/groceries/useGroceries.ts`): load initial rows
+  on the server, then in the browser subscribe to INSERT/UPDATE with a
+  `couple_id=eq.<id>` filter, and to DELETE *without* a filter (Supabase can't
+  filter deletes; payload is only the id). Reload on (re)subscribe and when the
+  app becomes visible. Optimistic changes; on error, reload. Client-generated
+  ids (`crypto.randomUUID()`) so realtime echoes match optimistic rows.
+- New realtime tables need `alter publication supabase_realtime add table ...`.
 
 ## Run locally
 ```bash
@@ -89,7 +98,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 - [x] Step 0: scaffold, app shell, bottom nav, PWA manifest + icons
 - [x] Step 1: Supabase clients + email/password auth + profiles (migration 0001 applied)
 - [x] Step 2: couples, pairing via invite code/link, security tests (migration 0002 applied)
-- [ ] Step 3: grocery list with realtime
+- [x] Step 3: grocery list with realtime (migration 0003 applied)
 - [ ] Step 4: calendar (week/month, mine/theirs/ours)
 - [ ] Step 5: home dashboard
 - [ ] Step 6: PWA polish (service worker, offline page, install)
