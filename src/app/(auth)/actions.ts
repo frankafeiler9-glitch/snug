@@ -5,6 +5,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/supabase/middleware";
 
 // What the form gets back after submitting. We send back what was typed
 // (except the password) so the fields don't empty themselves after an error.
@@ -39,7 +40,7 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
   if (!data.session) {
     return { ...typed, message: "Almost there! Check your email and tap the link to finish signing up." };
   }
-  redirect("/");
+  redirect(safeNext(String(formData.get("next") ?? "")));
 }
 
 export async function logIn(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -50,7 +51,7 @@ export async function logIn(_prev: FormState, formData: FormData): Promise<FormS
     password: String(formData.get("password") ?? ""),
   });
   if (error) return { email, error: friendly(error.message) };
-  redirect("/");
+  redirect(safeNext(String(formData.get("next") ?? "")));
 }
 
 export async function logOut() {

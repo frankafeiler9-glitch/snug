@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/Input";
 import { logIn, signUp } from "./actions";
 
 // Shared form for both /login and /signup.
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+// `next` is where to go afterwards (e.g. back to an invite link).
+export function AuthForm({ mode, next = "" }: { mode: "login" | "signup"; next?: string }) {
   const isSignup = mode === "signup";
   const [state, formAction] = useActionState(isSignup ? signUp : logIn, undefined);
 
   return (
     <form action={formAction} className="space-y-4">
+      <input type="hidden" name="next" value={next} />
       {isSignup && (
         <Input label="Your name" name="display_name" defaultValue={state?.displayName} autoComplete="given-name" required maxLength={40} />
       )}
@@ -33,9 +35,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
       <p className="text-center text-sm text-muted">
         {isSignup ? (
-          <>Already have an account? <Link href="/login" className="text-accent">Log in</Link></>
+          <>Already have an account? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-accent">Log in</Link></>
         ) : (
-          <>New here? <Link href="/signup" className="text-accent">Create an account</Link></>
+          <>New here? <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} className="text-accent">Create an account</Link></>
         )}
       </p>
     </form>

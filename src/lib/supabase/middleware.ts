@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Pages anyone can visit without being logged in.
-const PUBLIC_PATHS = ["/login", "/signup", "/auth"];
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/join"];
 
 // Runs before every page load (see src/middleware.ts):
 // 1. keeps the login session fresh,
@@ -44,7 +44,7 @@ export async function updateSession(request: NextRequest) {
     return redirectWithCookies(request, response, "/login");
   }
   if (isLoggedIn && (path === "/login" || path === "/signup")) {
-    return redirectWithCookies(request, response, "/");
+    return redirectWithCookies(request, response, safeNext(request.nextUrl.searchParams.get("next")));
   }
 
   return response;
@@ -52,10 +52,13 @@ export async function updateSession(request: NextRequest) {
 
 // Redirect while keeping any refreshed session cookies.
 function redirectWithCookies(request: NextRequest, from: NextResponse, to: string) {
-  const url = request.nextUrl.clone();
-  url.pathname = to;
-  url.search = "";
-  const redirect = NextResponse.redirect(url);
+  const redirect = NextResponse.redirect(new URL(to, request.url));
   from.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
   return redirect;
+}
+
+// Only allow redirects to pages on our own site (e.g. "/join/ABC123"),
+// never to another website.
+export function safeNext(next: string | null | undefined) {
+  return next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/";
 }

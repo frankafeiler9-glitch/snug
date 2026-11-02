@@ -1,21 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
 import { logOut } from "../(auth)/actions";
+import { getMyCouple } from "@/features/couple/queries";
+import { InviteCard } from "@/features/couple/InviteCard";
 
-// Home dashboard. Shows your name now; real events/groceries come in step 5.
+// Home dashboard. Real events/groceries come in step 5.
 export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", user!.id)
-    .single();
+  const couple = (await getMyCouple())!; // the layout already checked this exists
 
   return (
     <div className="space-y-4">
       <header className="flex items-start justify-between pt-2">
         <div>
-          <p className="text-sm text-muted">Good to see you, {profile?.display_name ?? "friend"}</p>
+          <p className="text-sm text-muted">
+            {couple.partner
+              ? `${couple.me.displayName} & ${couple.partner.displayName}`
+              : `Good to see you, ${couple.me.displayName}`}
+          </p>
           <h1 className="text-2xl font-semibold">Your day together</h1>
         </div>
         <form action={logOut}>
@@ -24,6 +23,9 @@ export default async function HomePage() {
           </button>
         </form>
       </header>
+
+      {!couple.partner && <InviteCard code={couple.inviteCode} expiresAt={couple.inviteExpiresAt} />}
+
       <section className="rounded-3xl bg-surface p-5 shadow-sm">
         <h2 className="text-sm font-medium text-muted">Today</h2>
         <p className="mt-1">Nothing planned. A slow day, maybe? ☕</p>
