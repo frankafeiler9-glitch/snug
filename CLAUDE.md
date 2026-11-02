@@ -37,7 +37,7 @@ and keep code simple and well-commented.
 ## Folder structure
 ```
 supabase/migrations/   numbered .sql files — the source of truth for the DB
-supabase/tests/        SQL checks (e.g. RLS isolation)
+scripts/test-security.mjs  security checks: one couple can't see another's data
 src/app/(auth)/        login, signup
 src/app/onboarding/    create or join a couple
 src/app/join/[code]/   invite link landing page
@@ -56,7 +56,12 @@ public/icons/          PWA icons (regenerate: scripts/make-icons.js)
 - Event ownership: `owner_id = null` means "ours"; otherwise the owning user.
   "Mine"/"theirs" is computed relative to the viewer.
 - Timestamps are `timestamptz`; couples have a `timezone`.
-- New feature = new migration file + new table with `couple_id` + RLS policies.
+- New feature = new migration file + new table with `couple_id` + RLS policies
+  + new checks in `scripts/test-security.mjs`.
+- Creating/joining couples goes through SQL functions (`create_couple`,
+  `join_couple`, `refresh_invite_code`), called with `supabase.rpc(...)`.
+- `getMyCouple()` (src/features/couple/queries.ts) returns the couple, `me` and
+  `partner`; the (app) layout redirects to /onboarding when it's null.
 
 ## Code conventions
 - Server components by default; `"use client"` only when needed (state, realtime).
@@ -71,6 +76,7 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # production build — must pass before committing
 npm run lint
+npm run test:security   # logs in as test accounts, checks row-level security
 ```
 Environment variables (from Supabase → Project Settings → API Keys; copy `.env.example`) go in
 `.env.local` (never committed):
@@ -82,7 +88,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ## Build progress
 - [x] Step 0: scaffold, app shell, bottom nav, PWA manifest + icons
 - [x] Step 1: Supabase clients + email/password auth + profiles (migration 0001 applied)
-- [ ] Step 2: couples, pairing via invite code/link, RLS tests
+- [x] Step 2: couples, pairing via invite code/link, security tests (migration 0002 applied)
 - [ ] Step 3: grocery list with realtime
 - [ ] Step 4: calendar (week/month, mine/theirs/ours)
 - [ ] Step 5: home dashboard
