@@ -78,6 +78,10 @@ public/icons/          PWA icons (regenerate: scripts/make-icons.js)
   app becomes visible. Optimistic changes; on error, reload. Client-generated
   ids (`crypto.randomUUID()`) so realtime echoes match optimistic rows.
 - New realtime tables need `alter publication supabase_realtime add table ...`.
+- Anything showing dates/times renders in the browser (client component with a
+  "mounted" guard, see `CalendarView.tsx`), because "today" and time zones
+  depend on the phone. Date helpers live in `src/lib/dates.ts` (weeks start Monday:
+  `WEEK_STARTS_ON`). All-day events: `ends_at` = midnight after the last day.
 
 ## Run locally
 ```bash
@@ -99,7 +103,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 - [x] Step 1: Supabase clients + email/password auth + profiles (migration 0001 applied)
 - [x] Step 2: couples, pairing via invite code/link, security tests (migration 0002 applied)
 - [x] Step 3: grocery list with realtime (migration 0003 applied)
-- [ ] Step 4: calendar (week/month, mine/theirs/ours)
+- [x] Step 4: calendar (week/month, mine/theirs/ours) (migration 0004 applied)
 - [ ] Step 5: home dashboard
 - [ ] Step 6: PWA polish (service worker, offline page, install)
 
