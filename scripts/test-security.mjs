@@ -132,6 +132,35 @@ check("Partner can tick it off, and we remember who did", tick.data?.checked_by 
 const cleanup = await a1.client.from("grocery_items").delete().eq("id", itemId).select();
 check("Member can delete it", (cleanup.data ?? []).length === 1);
 
+// ─── Calendar events ────────────────────────────────────────────────────
+const when = { starts_at: "2030-01-01T18:00:00Z", ends_at: "2030-01-01T19:00:00Z" };
+const ev = await a1.client.from("events").insert({ title: `test-event-${Date.now()}`, ...when, owner_id: a2.id }).select().single();
+check("Member can add an event for their partner", !ev.error && ev.data?.couple_id === coupleA, ev.error?.message);
+const evId = ev.data?.id;
+
+check("Partner sees the event", ((await a2.client.from("events").select("id").eq("id", evId)).data ?? []).length === 1);
+check("Other couple can't see the event", ((await b1.client.from("events").select("id").eq("id", evId)).data ?? []).length === 0);
+
+const evEdit = await b1.client.from("events").update({ title: "hacked" }).eq("id", evId).select();
+check("Other couple can't edit the event", (evEdit.data ?? []).length === 0);
+
+const evDel = await b1.client.from("events").delete().eq("id", evId).select();
+check("Other couple can't delete the event", (evDel.data ?? []).length === 0);
+
+const evPlant = await b1.client.from("events").insert({ title: "sneaky", ...when, couple_id: coupleA });
+check("Other couple can't add events to our calendar", Boolean(evPlant.error));
+
+const evStranger = await a1.client.from("events").insert({ title: "for a stranger", ...when, owner_id: b1.id });
+check("Can't make an event owned by someone outside the couple", Boolean(evStranger.error));
+
+const evBackwards = await a1.client.from("events").insert({ title: "backwards", starts_at: when.ends_at, ends_at: when.starts_at });
+check("Events can't end before they start", Boolean(evBackwards.error));
+
+const evOurs = await a2.client.from("events").update({ owner_id: null }).eq("id", evId).select().single();
+check("Partner can change it to 'ours'", evOurs.data?.owner_id === null, evOurs.error?.message);
+
+check("Member can delete the event", ((await a1.client.from("events").delete().eq("id", evId).select()).data ?? []).length === 1);
+
 // ─── Result ─────────────────────────────────────────────────────────────
 console.log(failures === 0 ? "\nAll security checks passed 🎉" : `\n${failures} check(s) FAILED`);
 process.exit(failures === 0 ? 0 : 1);
