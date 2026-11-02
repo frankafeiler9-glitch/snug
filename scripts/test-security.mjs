@@ -105,6 +105,33 @@ check("Couple B member sees only their own profile", bProfiles.length === 1 && b
 const renamePartner = await a1.client.from("profiles").update({ display_name: "hacked" }).eq("id", a2.id).select();
 check("You can't rename your partner", (renamePartner.data ?? []).length === 0);
 
+// ─── Grocery list ───────────────────────────────────────────────────────
+const marker = `test-item-${Date.now()}`;
+const addA = await a1.client.from("grocery_items").insert({ name: marker, category: "dairy" }).select().single();
+check("Member can add a grocery item (couple filled in automatically)", !addA.error && addA.data?.couple_id === coupleA, addA.error?.message);
+const itemId = addA.data?.id;
+
+const partnerSees = (await a2.client.from("grocery_items").select("id").eq("id", itemId)).data ?? [];
+check("Partner sees the item", partnerSees.length === 1);
+
+const outsiderSees = (await b1.client.from("grocery_items").select("id").eq("id", itemId)).data ?? [];
+check("Other couple can't see the item", outsiderSees.length === 0);
+
+const outsiderTicks = await b1.client.from("grocery_items").update({ is_checked: true }).eq("id", itemId).select();
+check("Other couple can't tick it off", (outsiderTicks.data ?? []).length === 0);
+
+const outsiderDeletes = await b1.client.from("grocery_items").delete().eq("id", itemId).select();
+check("Other couple can't delete it", (outsiderDeletes.data ?? []).length === 0);
+
+const plant = await b1.client.from("grocery_items").insert({ name: "sneaky", couple_id: coupleA });
+check("Other couple can't add items to our list", Boolean(plant.error));
+
+const tick = await a2.client.from("grocery_items").update({ is_checked: true }).eq("id", itemId).select().single();
+check("Partner can tick it off, and we remember who did", tick.data?.checked_by === a2.id, tick.error?.message);
+
+const cleanup = await a1.client.from("grocery_items").delete().eq("id", itemId).select();
+check("Member can delete it", (cleanup.data ?? []).length === 1);
+
 // ─── Result ─────────────────────────────────────────────────────────────
 console.log(failures === 0 ? "\nAll security checks passed 🎉" : `\n${failures} check(s) FAILED`);
 process.exit(failures === 0 ? 0 : 1);
