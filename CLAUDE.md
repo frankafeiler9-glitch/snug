@@ -72,7 +72,7 @@ npm run dev      # http://localhost:3000
 npm run build    # production build — must pass before committing
 npm run lint
 ```
-Environment variables (from Supabase → Project Settings → API) go in
+Environment variables (from Supabase → Project Settings → API Keys; copy `.env.example`) go in
 `.env.local` (never committed):
 ```
 NEXT_PUBLIC_SUPABASE_URL=...
@@ -81,7 +81,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
 ## Build progress
 - [x] Step 0: scaffold, app shell, bottom nav, PWA manifest + icons
-- [ ] Step 1: Supabase clients + email/password auth + profiles
+- [~] Step 1: Supabase clients + email/password auth + profiles (code done; not tested end-to-end against Supabase yet)
 - [ ] Step 2: couples, pairing via invite code/link, RLS tests
 - [ ] Step 3: grocery list with realtime
 - [ ] Step 4: calendar (week/month, mine/theirs/ours)

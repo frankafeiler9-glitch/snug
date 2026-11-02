@@ -1,10 +1,28 @@
-// Home dashboard. Placeholder for now; real data comes in step 5.
-export default function HomePage() {
+import { createClient } from "@/lib/supabase/server";
+import { logOut } from "../(auth)/actions";
+
+// Home dashboard. Shows your name now; real events/groceries come in step 5.
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", user!.id)
+    .single();
+
   return (
     <div className="space-y-4">
-      <header className="pt-2">
-        <p className="text-sm text-muted">Good to see you</p>
-        <h1 className="text-2xl font-semibold">Your day together</h1>
+      <header className="flex items-start justify-between pt-2">
+        <div>
+          <p className="text-sm text-muted">Good to see you, {profile?.display_name ?? "friend"}</p>
+          <h1 className="text-2xl font-semibold">Your day together</h1>
+        </div>
+        <form action={logOut}>
+          <button className="rounded-full bg-surface px-3 py-1.5 text-sm text-muted shadow-sm">
+            Log out
+          </button>
+        </form>
       </header>
       <section className="rounded-3xl bg-surface p-5 shadow-sm">
         <h2 className="text-sm font-medium text-muted">Today</h2>
