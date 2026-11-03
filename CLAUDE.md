@@ -106,7 +106,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 - [x] Step 4: calendar (week/month, mine/theirs/ours) (migration 0004 applied)
 - [x] Step 5: home dashboard (live "Today" + shopping count; no migration needed)
 - [x] Step 6: PWA polish (service worker `public/sw.js`, `public/offline.html`, install card)
-- [ ] Deploy to Vercel (owner sets it up; every push to `main` then redeploys)
+- [x] Deployed: https://snug-eta.vercel.app (Vercel; every push to `main` redeploys)
 
 ## PWA notes
 - `public/sw.js` only caches the offline page, icons and `/_next/static` files.
