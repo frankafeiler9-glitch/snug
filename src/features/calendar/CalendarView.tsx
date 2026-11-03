@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import type { Person } from "@/features/couple/queries";
 import {
-  addDays, addMonths, formatDayMonth, formatLongDay, formatMonthYear, formatTime, formatWeekday,
+  addDays, addMonths, formatDayMonth, formatLongDay, formatMonthYear, formatWeekday,
   isSameDay, monthGrid, overlapsDay, startOfDay, weekDays,
 } from "@/lib/dates";
+import { EventChip } from "./EventChip";
 import { EventForm } from "./EventForm";
 import { useEvents } from "./useEvents";
 import { WHOSE_STYLE, whoseEvent, type CalendarEvent } from "./types";
@@ -45,11 +46,6 @@ function Calendar({ coupleId, me, partner }: Props) {
     const start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), isSameDay(day, now) ? now.getHours() + 1 : 18);
     setEditing({ starts_at: start.toISOString(), ends_at: new Date(start.getTime() + 3600_000).toISOString() });
   }
-
-  const name = (e: CalendarEvent) => {
-    const w = whoseEvent(e, me.id);
-    return w === "ours" ? "Ours" : w === "mine" ? "Mine" : `${partner?.displayName ?? "Partner"}'s`;
-  };
 
   const rangeLabel =
     view === "week" ? `${formatDayMonth(days[0])} – ${formatDayMonth(days[6])}` : formatMonthYear(anchor);
@@ -102,7 +98,7 @@ function Calendar({ coupleId, me, partner }: Props) {
               isToday={isSameDay(day, today)}
               events={eventsOn(day)}
               meId={me.id}
-              ownerLabel={name}
+              partnerName={partner?.displayName ?? null}
               onAdd={() => newEvent(day)}
               onOpen={setEditing}
             />
@@ -123,7 +119,7 @@ function Calendar({ coupleId, me, partner }: Props) {
             isToday={isSameDay(selected, today)}
             events={eventsOn(selected)}
             meId={me.id}
-            ownerLabel={name}
+            partnerName={partner?.displayName ?? null}
             onAdd={() => newEvent(selected)}
             onOpen={setEditing}
             long
@@ -171,12 +167,12 @@ function Legend({ className, label }: { className: string; label: string }) {
 }
 
 // One day with its events (used for every day in week view, and the picked day in month view).
-function DayCard({ day, isToday, events, meId, ownerLabel, onAdd, onOpen, long = false }: {
+function DayCard({ day, isToday, events, meId, partnerName, onAdd, onOpen, long = false }: {
   day: Date;
   isToday: boolean;
   events: CalendarEvent[];
   meId: string;
-  ownerLabel: (e: CalendarEvent) => string;
+  partnerName: string | null;
   onAdd: () => void;
   onOpen: (e: CalendarEvent) => void;
   long?: boolean;
@@ -191,22 +187,11 @@ function DayCard({ day, isToday, events, meId, ownerLabel, onAdd, onOpen, long =
       </div>
       <div className="min-w-0 flex-1 space-y-1.5 py-1">
         {long && <p className="text-sm font-medium">{formatLongDay(day)}</p>}
-        {events.map((e) => {
-          const style = WHOSE_STYLE[whoseEvent(e, meId)];
-          return (
-            <button key={e.id} onClick={() => onOpen(e)} className={`flex w-full items-center gap-2 rounded-2xl px-3 py-2 text-left ${style.soft}`}>
-              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${style.dot}`} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{e.title}</span>
-                <span className="block text-xs text-muted">
-                  {e.all_day ? "All day" : `${formatTime(new Date(e.starts_at))} – ${formatTime(new Date(e.ends_at))}`}
-                  {" · "}
-                  <span className={style.text}>{ownerLabel(e)}</span>
-                </span>
-              </span>
-            </button>
-          );
-        })}
+        {events.map((e) => (
+          <button key={e.id} onClick={() => onOpen(e)} className="block w-full">
+            <EventChip event={e} meId={meId} partnerName={partnerName} />
+          </button>
+        ))}
         <button onClick={onAdd} className="w-full rounded-2xl px-3 py-1.5 text-left text-sm text-muted">
           {events.length === 0 ? "Free · tap to add something" : "+ Add"}
         </button>

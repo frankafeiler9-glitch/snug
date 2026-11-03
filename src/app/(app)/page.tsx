@@ -1,20 +1,27 @@
 import { logOut } from "../(auth)/actions";
+import { createClient } from "@/lib/supabase/server";
 import { getMyCouple } from "@/features/couple/queries";
 import { InviteCard } from "@/features/couple/InviteCard";
+import { GROCERY_COLUMNS, type GroceryItem } from "@/features/groceries/types";
+import { Greeting } from "@/features/home/Greeting";
+import { ShoppingCard } from "@/features/home/ShoppingCard";
+import { TodayCard } from "@/features/home/TodayCard";
 
-// Home dashboard. Real events/groceries come in step 5.
+// Home: "Your day together". Today's plans + what's left to buy, both kept live.
 export default async function HomePage() {
   const couple = (await getMyCouple())!; // the layout already checked this exists
+  const supabase = await createClient();
+  const { data: groceries } = await supabase.from("grocery_items").select(GROCERY_COLUMNS);
+
+  const names = couple.partner
+    ? `${couple.me.displayName} & ${couple.partner.displayName}`
+    : couple.me.displayName;
 
   return (
     <div className="space-y-4">
       <header className="flex items-start justify-between pt-2">
         <div>
-          <p className="text-sm text-muted">
-            {couple.partner
-              ? `${couple.me.displayName} & ${couple.partner.displayName}`
-              : `Good to see you, ${couple.me.displayName}`}
-          </p>
+          <Greeting names={names} />
           <h1 className="text-2xl font-semibold">Your day together</h1>
         </div>
         <form action={logOut}>
@@ -26,14 +33,8 @@ export default async function HomePage() {
 
       {!couple.partner && <InviteCard code={couple.inviteCode} expiresAt={couple.inviteExpiresAt} />}
 
-      <section className="rounded-3xl bg-surface p-5 shadow-sm">
-        <h2 className="text-sm font-medium text-muted">Today</h2>
-        <p className="mt-1">Nothing planned. A slow day, maybe? ☕</p>
-      </section>
-      <section className="rounded-3xl bg-surface p-5 shadow-sm">
-        <h2 className="text-sm font-medium text-muted">Shopping list</h2>
-        <p className="mt-1">All stocked up. Nothing to buy.</p>
-      </section>
+      <TodayCard coupleId={couple.id} me={couple.me} partner={couple.partner} />
+      <ShoppingCard coupleId={couple.id} initialItems={(groceries ?? []) as GroceryItem[]} />
     </div>
   );
 }

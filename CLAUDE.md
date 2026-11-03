@@ -42,7 +42,7 @@ src/app/(auth)/        login, signup
 src/app/onboarding/    create or join a couple
 src/app/join/[code]/   invite link landing page
 src/app/(app)/         signed-in screens with bottom nav (home, groceries, calendar)
-src/features/<name>/   components, queries and hooks for one feature
+src/features/<name>/   components, queries and hooks for one feature (home/ = dashboard cards)
 src/lib/supabase/      Supabase clients (browser, server, middleware)
 src/components/        shared UI (BottomNav, ui/ primitives)
 public/icons/          PWA icons (regenerate: scripts/make-icons.js)
@@ -104,7 +104,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 - [x] Step 2: couples, pairing via invite code/link, security tests (migration 0002 applied)
 - [x] Step 3: grocery list with realtime (migration 0003 applied)
 - [x] Step 4: calendar (week/month, mine/theirs/ours) (migration 0004 applied)
-- [ ] Step 5: home dashboard
+- [x] Step 5: home dashboard (live "Today" + shopping count; no migration needed)
 - [ ] Step 6: PWA polish (service worker, offline page, install)
 
 ## Notes for the cloud dev environment
