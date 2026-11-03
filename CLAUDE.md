@@ -105,7 +105,22 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 - [x] Step 3: grocery list with realtime (migration 0003 applied)
 - [x] Step 4: calendar (week/month, mine/theirs/ours) (migration 0004 applied)
 - [x] Step 5: home dashboard (live "Today" + shopping count; no migration needed)
-- [ ] Step 6: PWA polish (service worker, offline page, install)
+- [x] Step 6: PWA polish (service worker `public/sw.js`, `public/offline.html`, install card)
+- [ ] Deploy to Vercel (owner sets it up; every push to `main` then redeploys)
+
+## PWA notes
+- `public/sw.js` only caches the offline page, icons and `/_next/static` files.
+  It never caches pages or Supabase data. Bump `VERSION` in it after changes.
+- The service worker only registers in production builds (`npm run build && npm start`).
+- `InstallCard` shows an install button (Android/Chrome) or Safari instructions (iOS).
+
+## Deploying (Vercel)
+- Vercel project imported from GitHub `frankafeiler9-glitch/snug`; pushes to `main` auto-deploy.
+- Env vars set in Vercel → Project → Settings → Environment Variables:
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (redeploy after changing).
+- If "Confirm email" is turned on in Supabase, set Supabase → Authentication →
+  URL Configuration → Site URL to the Vercel URL and add `<url>/auth/callback`
+  to Redirect URLs.
 
 ## Notes for the cloud dev environment
 - Node's server-side `fetch` needs the proxy: start the app with

@@ -4,6 +4,7 @@ import { getMyCouple } from "@/features/couple/queries";
 import { InviteCard } from "@/features/couple/InviteCard";
 import { GROCERY_COLUMNS, type GroceryItem } from "@/features/groceries/types";
 import { Greeting } from "@/features/home/Greeting";
+import { InstallCard } from "@/features/home/InstallCard";
 import { ShoppingCard } from "@/features/home/ShoppingCard";
 import { TodayCard } from "@/features/home/TodayCard";
 
@@ -35,6 +36,7 @@ export default async function HomePage() {
 
       <TodayCard coupleId={couple.id} me={couple.me} partner={couple.partner} />
       <ShoppingCard coupleId={couple.id} initialItems={(groceries ?? []) as GroceryItem[]} />
+      <InstallCard />
     </div>
   );
 }
